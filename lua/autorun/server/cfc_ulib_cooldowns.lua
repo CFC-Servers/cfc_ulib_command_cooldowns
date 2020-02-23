@@ -8,27 +8,20 @@ local ULIB_COOLDOWNS = {
     ["ulx unragdoll"] = {amount=2, decayRate=5},
 }
 
--- just a unique constant
-local EXEMPT = {}
-
 local RANK_OVERRIDES = {
-    "moderator" = {
+    moderator = {
         exempt = true
-    }
-
-    "sentinel" = {
-        ["ulx ragdoll"] = EXEMPT
     }
 }
 
 -- stores the actual cooldown counters
 local playerCooldowns = {}
 
-local function maxAmount( commandName )
+local function maxAmount( ply, commandName )
     return ( ULIB_COOLDOWNS[commandName] or ULIB_COOLDOWNS.default ).amount
 end
 
-local function decayRate( commandName )
+local function decayRate( ply, commandName )
     return ( ULIB_COOLDOWNS[commandName] or ULIB_COOLDOWNS.default ).decayRate
 end
 
@@ -45,7 +38,6 @@ local function isExempt( ply, commandName )
     if not overrides then return false end
 
     if overrides.exempt then return true end
-    if overrides[commandName] == EXEMPT then return true end
 
     return false
 end
