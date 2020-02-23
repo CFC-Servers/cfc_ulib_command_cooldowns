@@ -8,6 +8,18 @@ local ULIB_COOLDOWNS = {
     ["ulx unragdoll"] = {amount=2, decayRate=5},
 }
 
+-- just a unique constant
+local EXEMPT = {}
+
+local RANK_OVERRIDES = {
+    "moderator" = {
+        exempt = true
+    }
+
+    "sentinel" = {
+        ["ulx ragdoll"] = EXEMPT
+    }
+}
 
 -- stores the actual cooldown counters
 local playerCooldowns = {}
@@ -27,8 +39,13 @@ local function cooldownExists( commandName )
     return false
 end
 
-local function isExempt( ply )
+local function isExempt( ply, commandName )
     if ply:IsAdmin() then return true end
+    local overrides = RANK_OVERRIDES[getRankName( ply )]
+    if not overrides then return false end
+
+    if overrides.exempt then return true end
+    if overrides[commandName] == EXEMPT then return true end
 
     return false
 end
@@ -74,10 +91,13 @@ local function newUsage( ply, commandName )
 end
 
 hook.Add( "ULibPostTranslatedCommand", "CFC_UlibCooldowns_PostTranslate", function( ply, commandName, translatedArgs)
+    if isExempt( ply, commandName ) then return true end
     newUsage( ply, commandName )
 end ) 
 
 hook.Add( "ULibCommandCalled", "CFC_UlibCooldowns_Called", function( ply, commandName, args )
+    if isExempt( ply, commandName ) then return true end
+    
     if not canRun( ply, commandName ) then 
         ULib.tsayError( ply, "You are using this command too much", true)
         return false, "This command is on cooldown" 
