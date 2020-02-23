@@ -12,6 +12,10 @@ local RANK_OVERRIDES = {
     moderator = {
         exempt = true
     }
+
+    sentinel = {
+        ["ulx unragdoll"] = {exempt=true}
+    }
 }
 
 -- stores the actual cooldown counters
@@ -38,7 +42,9 @@ local function isExempt( ply, commandName )
     if not overrides then return false end
 
     if overrides.exempt then return true end
-
+    if overrides[commandName] and overrides[commandName].exempt then
+        return true
+    end
     return false
 end
 
@@ -60,9 +66,10 @@ end
 
 local function canRun( ply, commandName )
     if not cooldownExists( commandName ) then return true end
+
     local cooldown = getCooldownTable( ply, commandName )
 
-    local timeSince = CurTime() - cooldown.lastRun 
+    local timeSince = CurTime() - cooldown.lastRun
     cooldown.count = cooldown.count - math.floor( timeSince / decayRate( commandName ) )
     cooldown.count = math.max( 0, cooldown.count )
 
