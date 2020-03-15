@@ -14,15 +14,9 @@ local RANK_OVERRIDES = {
     },
 }
 
--- stores the actual cooldown counters
-local playerCooldowns = {}
-
-local function getRankName( ply ) 
-    return team.GetName( ply:Team() )
-end
-
 local function getCooldownConfig( ply, commandName )
-    local overrides = RANK_OVERRIDES[getRankName( ply )]
+    local rankName = team.GetName( ply:Team() )
+    local overrides = RANK_OVERRIDES[rankName]
 
     if overrides and overrides[commandName] then return overrides[commandName] end
     
@@ -30,12 +24,17 @@ local function getCooldownConfig( ply, commandName )
 end
 
 local function isExempt( ply, commandName )
+    local rankName = team.GetName( ply:Team() )
     if ply:IsAdmin() then return true end
-    local overrides = RANK_OVERRIDES[getRankName( ply )]
+    local overrides = RANK_OVERRIDES[rankname]
 
     if overrides and overrides.exempt then return true end
     return false
 end
+
+-- stores the actual cooldown counters
+local playerCooldowns = {}
+
 
 local function getCooldownTable( ply, commandName )
     local cooldowns = playerCooldowns[ply] or {}
@@ -46,6 +45,7 @@ local function getCooldownTable( ply, commandName )
 
     return cooldown
 end
+
 
 local function canRun( ply, commandName )
     local conf = getCooldownConfig( ply, commandName )
