@@ -28,7 +28,7 @@ local function getCooldownConfig( ply, commandName )
     local overrides = RANK_OVERRIDES[rankName]
 
     if overrides and overrides[commandName] then return overrides[commandName] end
-    
+
     return ULIB_COOLDOWNS[commandName] or ULIB_COOLDOWNS.default
 end
 
@@ -49,7 +49,7 @@ local function getCooldownTable( ply, commandName )
     local cooldowns = playerCooldowns[ply] or {}
     playerCooldowns[ply] = cooldowns
 
-    local cooldown = cooldowns[commandName] or {lastRun = 0, count = 0}
+    local cooldown = cooldowns[commandName] or { lastRun = 0, count = 0 }
     cooldowns[commandName] = cooldown
 
     return cooldown
@@ -68,16 +68,12 @@ local function canRun( ply, commandName )
     if config.amount == 0 then return true end
 
     local cooldown = getCooldownTable( ply, commandName )
-
     local timeSince = CurTime() - cooldown.lastRun
-    cooldown.count = cooldown.count - math.floor( timeSince / config.decayRate)
+
+    cooldown.count = cooldown.count - math.floor( timeSince / config.decayRate )
     cooldown.count = math.max( 0, cooldown.count )
 
-    if cooldown.count >= config.amount then
-        return false
-    end
-
-    return true
+    return cooldown.count < config.amount
 end
 
 local function newUsage( ply, commandName )
@@ -87,16 +83,16 @@ local function newUsage( ply, commandName )
     cooldown.count = cooldown.count + 1
 end
 
-hook.Add( "ULibPostTranslatedCommand", "CFC_UlibCooldowns_PostTranslate", function( ply, commandName, translatedArgs)
+hook.Add( "ULibPostTranslatedCommand", "CFC_UlibCooldowns_PostTranslate", function( ply, commandName, translatedArgs )
     if isExempt( ply, commandName ) then return end
     newUsage( ply, commandName )
-end ) 
+end )
 
 hook.Add( "ULibCommandCalled", "CFC_UlibCooldowns_Called", function( ply, commandName, args )
     if isExempt( ply, commandName ) then return end
-    
-    if not canRun( ply, commandName ) then 
+
+    if not canRun( ply, commandName ) then
         ULib.tsayError( ply, "You are using this command too much", true)
-        return false, "This command is on cooldown" 
+        return false, "This command is on cooldown"
     end
 end )
