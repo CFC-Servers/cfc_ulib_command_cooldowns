@@ -3,19 +3,45 @@
 -- Using a command adds to its counter. If this counter is greater than `amount`, you can no longer run the command
 -- 1 is subtracted from the counter every `decayRate` seconds
 local ULIB_COOLDOWNS = {
-    ["default"] = {
-        amount = CreateConVar( "cfc_ulib_cooldowns_default_amount", 3, FCVAR_NEVER_AS_STRING, "The max number of times most ULX commands can be used by a player within a timeframe. A value of zero means no limit. (default 3)", 0, 50000 ),
-        decayRate = CreateConVar( "cfc_ulib_cooldowns_default_decay", 2, FCVAR_NEVER_AS_STRING, "The number of seconds it takes for a command's counter to decrease by one. (default 2)", 0.001, 50000 )
+    default = {
+        amount = 3,
+        decayRate = 2,
     },
-    ["ulx ragdoll"] = {
-        amount = CreateConVar( "cfc_ulib_cooldowns_ragdoll_amount", 2, FCVAR_NEVER_AS_STRING, "The max number of times ulx ragdoll can be used by a player within a timeframe. A value of zero means no limit. (default 2)", 0, 50000 ),
-        decayRate = CreateConVar( "cfc_ulib_cooldowns_ragdoll_decay", 5, FCVAR_NEVER_AS_STRING, "The number of seconds it takes for ulx ragdoll's counter to decrease by one. (default 5)", 0.001, 50000 )
+    ragdoll = {
+        amount = 2,
+        decayRate = 5,
     },
-    ["ulx unragdoll"] = {
-        amount = CreateConVar( "cfc_ulib_cooldowns_unragdoll_amount", 2, FCVAR_NEVER_AS_STRING, "The max number of times ulx unragdoll can be used by a player within a timeframe. A value of zero means no limit. (default 2)", 0, 50000 ),
-        decayRate = CreateConVar( "cfc_ulib_cooldowns_unragdoll_decay", 5, FCVAR_NEVER_AS_STRING, "The number of seconds it takes for ulx unragdoll's counter to decrease by one. (default 5)", 0.001, 50000 )
+    unragdoll = {
+        amount = 2,
+        decayRate = 5,
     },
 }
+
+local function setupConVar( name )
+    local cvData = ULIB_COOLDOWNS[name]
+    local amountText = name == "default" and "The max number of times most ULX commands can be used by a player within a timeframe. A value of zero means no limit." or
+        "The max number of times ulx " .. name .. " can be used by a player within a timeframe. A value of zero means no limit."
+    local decayRateText = name == "default" and "The number of seconds it takes for a command's counter to decrease by one." or
+        "The number of seconds it takes for ulx " .. name .. "'s counter to decrease by one."
+
+    local amountCV = CreateConVar( "cfc_ulib_cooldowns_" .. name .. "_amount", cvData.amount, FCVAR_NEVER_AS_STRING, amountText .. " (default " .. cvData.amount .. ")", 0, 50000 )
+    local decayRateCV = CreateConVar( "cfc_ulib_cooldowns_" .. name .. "_decay", cvData.decayRate, FCVAR_NEVER_AS_STRING, decayRateText .. " (default " .. cvData.decayRate .. ")", 0.001, 50000 )
+
+    if name ~= "default" then
+        ULIB_COOLDOWNS[name] = nil
+        name = "ulx " .. name
+        ULIB_COOLDOWNS[name] = {}
+    end
+
+    ULIB_COOLDOWNS[name].amount = amountCV
+    ULIB_COOLDOWNS[name].decayRate = decayRateCV
+end
+
+for name, _ in pairs( ULIB_COOLDOWNS ) do
+    if name:sub( 1, 3 ) == "ulx" then continue end -- pairs() Shouldn't cause this to happen, but for in case the key changing done by setupConVar() fucks things up
+
+    setupConVar( name )
+end
 
 local RANK_OVERRIDES = {
     moderator = {
